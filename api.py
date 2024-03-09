@@ -21,7 +21,8 @@ def get_user(user_id):
 @app.route('/users', methods=['POST'])
 def create_user():
     data = request.json
-    if isinstance(data.get('age'), int):
+    
+    if (data.get('age').isdigit()):
         user_id = str(uuid.uuid4())
         users[user_id] = data
         return jsonify({"message": "Usuário Cadastrado com Sucesso!!", "user_id": user_id}), 201
@@ -46,4 +47,4 @@ def delete_user(user_id):
         return jsonify({"error": "Usuário Não Encontrado!!"}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True, port=3000, host='0.0.0.0')
+    app.run(debug=True, port=80, host='localhost')
