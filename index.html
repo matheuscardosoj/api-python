@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <style>
+            .card {
+                background: rgb(62, 129, 168);
+                height: fit-content;
+                width: 35%;
+                display: flex;
+                flex-flow: row nowrap;
+                align-items: center;
+                justify-content: space-between;
+                padding: 15px;
+                margin-bottom: 20px;
+                border-radius: 5px;
+            }
+
+            .card div {
+                display: flex;
+                flex-flow: column nowrap;
+            }
+
+            .card p {
+                padding: 0;
+                margin: 0;
+            }
+
+            .card input {
+                width: 70%;
+            }
+        </style>
+    </head>
+
+    <body>
+        <form action="http://localhost/users" method="post">
+            <h1>Cadastrar usuário</h1>
+
+            <p>
+                <label>Nome: </label>
+                <input type="text" class="inputNome">
+            </p>
+
+            <p>
+                <label>Idade: </label>
+                <input type="text" class="inputIdade">
+            </p>
+
+            <button type="submit">Cadastrar</button>
+        </form>
+
+        <div class="users">
+
+        </div>
+
+        <script>
+            let users = [];
+            const form = document.querySelector('form');
+            const inputNome = document.querySelector('.inputNome');
+            const inputIdade = document.querySelector('.inputIdade');
+            const divUsers = document.querySelector('.users');
+
+            function criaEventoBotaoApagar(botaoApagar, user) {
+                botaoApagar.addEventListener('click', (e) => {
+                    fetch(`http://localhost/users/${user.id}`, {
+                        method: 'DELETE'
+                    }).then(response => {
+                        console.log("Usuário deletado!");
+                        atualizaUsuarios();
+                    }).catch(error => {
+                        console.log(error);
+                    });
+                });
+            }
+
+            function criaEventoBotaoAtualizar(botaoAtualizar, divPai, user) {
+                botaoAtualizar.addEventListener('click', (e) => {
+                    const spanNome = divPai.querySelector('.nome');
+                    const spanIdade = divPai.querySelector('.idade');
+                    const divDados = divPai.querySelector('.divDados');
+                    const divBotoes = divPai.querySelector('.divBotoes');
+                    const botoes = divBotoes.querySelectorAll("button");
+
+                    const form = document.createElement('form');
+
+                    form.innerHTML = `
+                        <input type="text" value="${spanNome.textContent}" class="inputNovoNome">    
+                        <input type="text" value="${spanIdade.textContent}" class="inputNovaIdade">
+                    `;
+
+                    divDados.innerHTML = '';
+                    divDados.appendChild(form);
+
+                    Array.from(botoes).forEach(botao => botao.remove());
+
+                    const botaoCancelar = document.createElement('button');
+                    botaoCancelar.textContent = 'Cancelar';
+                    botaoCancelar.setAttribute('type', 'button');
+
+                    divBotoes.appendChild(botaoCancelar);
+
+                    botaoCancelar.addEventListener('click', (e) => {
+                        atualizaUsuarios();
+                    });
+
+                    form.addEventListener("keypress", (e) => {
+                        if(e.key === "Enter") {
+                            const inputNovoNome = divPai.querySelector('.inputNovoNome');
+                            const inputNovaIdade = divPai.querySelector('.inputNovaIdade');
+
+                            const userAlterado = { name:inputNovoNome.value, age:inputNovaIdade.value };
+                            const userAlteradoJSON = JSON.stringify(userAlterado);
+
+                            fetch(`http://localhost/users/${user.id}`, { 
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: userAlteradoJSON 
+                            })
+                            .then(response => {
+                                atualizaUsuarios();
+                            })
+                            .catch(error => {
+                                console.log(error);
+                            });
+                        }                                               
+                    });
+                });
+            }
+
+            function criaCardUser(user) {
+                const divPai = document.createElement('div');
+                const botaoApagar = document.createElement('button');
+                const botaoAtualizar = document.createElement('button');
+                const divDados = document.createElement('div');
+                const divBotoes = document.createElement('div');
+
+                const nome = `<p>Nome: <span class="nome">${user.name}</span></p>`;
+                const idade = `<p>Idade: <span class="idade">${user.age}</span></p>`;
+
+                divDados.classList.add('divDados');
+                divBotoes.classList.add('divBotoes');
+
+                divPai.classList.add('card');
+
+                botaoApagar.classList.add('botaoApagar');
+                botaoApagar.textContent = 'Excluir';
+                criaEventoBotaoApagar(botaoApagar, user);
+                
+                botaoAtualizar.classList.add('botaoAtualizar');
+                botaoAtualizar.textContent = 'Atualizar';
+                criaEventoBotaoAtualizar(botaoAtualizar, divPai, user);
+
+                divDados.innerHTML = nome;
+                divDados.innerHTML += idade;
+
+                divBotoes.appendChild(botaoAtualizar);
+                divBotoes.appendChild(botaoApagar);
+
+                divPai.appendChild(divDados);
+                divPai.appendChild(divBotoes);
+                
+                divUsers.appendChild(divPai);
+            }
+
+            function criaCardSemUser(msg) {
+                const p = document.createElement('p');
+                p.textContent = msg;
+                p.classList.add('card');
+                divUsers.appendChild(p);
+            }
+
+            function atualizaUsuarios() {
+                divUsers.innerHTML = '';
+                users = [];
+
+                fetch("http://localhost/users", {
+                    method: 'GET'
+                })
+                .then(response => {
+                    return response.json();
+                })
+                .then(response => {
+                    for (const key in response) {
+                        users.push({ ...response[key], id:key });
+                    }
+
+                    const h1 = document.createElement('h1');
+                    h1.textContent = 'Usuários';
+                    divUsers.appendChild(h1);
+
+                    if(users.length > 0) {
+                        users.forEach(user => {
+                            criaCardUser(user);
+                        });
+                    } else {
+                        criaCardSemUser("Não há ususários cadastrados!");
+                    }                    
+                })
+                .catch(e => {
+                    criaCardSemUser("Erro de conexão com servidor!");
+                    console.log();
+                });
+            }  
+
+            form.addEventListener('submit', e => {
+                e.preventDefault();
+
+                const user = { name: inputNome.value, age: inputIdade.value };
+
+                const userJSON = JSON.stringify(user);
+
+                fetch("http://localhost/users", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: userJSON
+                })
+                    .then(response => {
+                        const p = document.createElement('p');
+                        p.textContent = 'Usuário gerado com sucesso!';
+                        inputIdade.insertAdjacentElement('afterEnd', p);
+
+                        setTimeout(() => {
+                            p.remove();
+                        }, 3000)
+                    })
+                    .catch(error => {
+                        console.log("Erro: " + error);
+                    })
+                    .finally(response => {
+                        inputNome.value = '';
+                        inputIdade.value = '';
+
+                        atualizaUsuarios();
+                    });
+            });
+
+            atualizaUsuarios();
+        </script>
+    </body>
+</html>
