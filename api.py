@@ -16,7 +16,7 @@ def get_user(user_id):
     if user_id in users:
         return jsonify(users[user_id])
     else:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({"error": "Usuário Não Encontrado!!"}), 404
 
 @app.route('/users', methods=['POST'])
 def create_user():
@@ -24,14 +24,14 @@ def create_user():
     user_id = str(uuid.uuid4())
     users[user_id] = data
     
-    return jsonify({"message": "User created successfully", "user_id": user_id}), 201
+    return jsonify({"message": "Usuário Cadastrado com Sucesso!!", "user_id": user_id}), 201
 
 @app.route('/users/<user_id>', methods=['PUT'])
 def update_user(user_id):
     if user_id in users:
         data = request.json
         users[user_id] = data
-        return jsonify({"message": "User updated successfully"}), 200
+        return jsonify({"message": "Usuário Atualizado com Sucesso!!"}), 200
     else:
         return jsonify({"error": "User not found"}), 404
 
@@ -39,7 +39,7 @@ def update_user(user_id):
 def delete_user(user_id): 
     if user_id in users:
         del users[user_id]
-        return jsonify({"message": "User deleted successfully"}), 200
+        return jsonify({"message": "Usuário Deletado com Sucesso!!"}), 200
     else:
         return jsonify({"error": "User not found"}), 404
 
