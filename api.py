@@ -21,10 +21,12 @@ def get_user(user_id):
 @app.route('/users', methods=['POST'])
 def create_user():
     data = request.json
-    user_id = str(uuid.uuid4())
-    users[user_id] = data
-    
-    return jsonify({"message": "Usuário Cadastrado com Sucesso!!", "user_id": user_id}), 201
+    if isinstance(data.get('age'), int):
+        user_id = str(uuid.uuid4())
+        users[user_id] = data
+        return jsonify({"message": "Usuário Cadastrado com Sucesso!!", "user_id": user_id}), 201
+    else:
+        return jsonify({"error": "A idade deve ser um número inteiro"}), 400
 
 @app.route('/users/<user_id>', methods=['PUT'])
 def update_user(user_id):
