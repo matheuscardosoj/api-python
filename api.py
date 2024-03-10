@@ -22,7 +22,7 @@ def get_user(user_id):
 def create_user():
     data = request.json
     
-    if (data.get('age').isdigit()):
+    if (type(data.get('age') == "int")):
         user_id = str(uuid.uuid4())
         users[user_id] = data
         return jsonify({"message": "Usuário Cadastrado com Sucesso!!", "user_id": user_id}), 201
